@@ -1,12 +1,28 @@
-const http = require('http');
-const PORT = 3000;
+const express = require("express"); // ini perlu
+const cors = require('cors');
+const path = require('path'); //tidak perlu npm install
+const connection = require('./app/model/index')
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World!');
-});
+// init express server and router
+const app = express();
+const mainRouter = require('./app/routes');
+require('dotenv').config()
 
-server.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}/`);
-});
+app.use(cors());
+app.use(express.json()); // supaya express bisa response json
+app.use(express.urlencoded({ extended: false })); // supaya express bisa menerima body
+
+app.use("/", mainRouter);
+
+const port = process.env.PORT || 3000;
+app.listen(port, "0.0.0.0", function(){
+    console.log("server start on", port)
+    connection.authenticate()
+    .then(function(){
+        console.log("Database terhubung")
+    })
+    .catch(function(err){
+        console.log("Error saat koneksi ke database", err)
+        process.exit()
+    })
+})
